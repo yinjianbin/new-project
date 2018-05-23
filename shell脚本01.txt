@@ -1,0 +1,471 @@
+Linux SHELL脚本 
+
+	大量重复执行的工作 
+	
+	shell (Linux壳)， 一类程序的名称
+
+	
+	文本文件-------> shell命令， /bin/bash提供逻辑控制语句， 
+
+
+
+
+重定向符号的使用 
+
+	/dev/stdin		标准输入设备（键盘）			0
+	/dev/stdout		标准输出设备（显示器）			1
+	/dev/stderr		标准错误输出设备（显示器） 		2
+	
+
+输出重定向符号
+
+	> 	>>		用于重定向标准输出
+		[root@shell ~]# ls -ldh /etc/ > /tmp/1.txt
+		[root@shell ~]# ls -ldh /tmp/ >> /tmp/1.txt 
+
+	2>  2>>		用于重定向标准错误输出 
+		[root@shell ~]# ls -ldh /asjdfklasjdlfasd 2> /tmp/1.txt 
+
+
+	&>	同时重定向标准输出及标准错误输出 
+
+		特殊设备文件： /dev/null 
+
+		[root@shell ~]# ls -ldh /etc/ &> /dev/null 
+
+
+输入重定向符号
+
+	[root@shell ~]# tr 'a-z' 'A-Z' < /tmp/1.txt 
+	ABCDEF
+	[root@shell ~]# 
+	
+	[root@localhost ~]# mail -s "test fstab" root@localhost < /etc/fstab 
+
+
+
+
+输出信息：
+
+1	echo 
+
+[root@shell ~]# echo "请输入你的选择："				默认会打印换行符
+请输入你的选择：
+
+[root@shell ~]# echo -n "请输入你的选择："				
+请输入你的选择：[root@shell ~]# 
+	
+
+[root@shell ~]# echo -e "a\nbb\nccc"				\n：回车
+a
+bb
+ccc
+[root@shell ~]# echo -e "a\tbb\tccc"				\t	tab键
+a	bb	ccc
+[root@shell ~]# 
+
+
+2	printf
+
+[root@shell ~]# printf "hello world"
+hello world[root@shell ~]# 
+
+
+3	HERE DOCUMENT -----> 输出多行内容 
+
+[root@shell ~]# cat << eof
+> 1. 安装KVM
+> 2. 重置所有虚拟机
+> eof
+1. 安装KVM
+2. 重置所有虚拟机
+[root@shell ~]# 
+
+
+双引号和单引号的区别：
+
+	单引号： 所有字符会失云原有的含义 
+	双引号： 特殊字符会被转义
+
+
+
+如何交互式命令：
+
+[root@shell ~]# echo "redhat" | passwd --stdin tom &> /dev/null 
+
+[root@shell ~]# echo -e "n\np\n1\n\n+500M\nw\n" | fdisk /dev/vdb &> /dev/null 
+
+
+
+
+
+SHELL变量
+
+	变量 (内存空间)
+	增加脚本的灵活性， 适用性 
+
+
+类型：
+
+	自定义变量
+	环境变量(PATH)
+	特殊变量
+
+
+自定义变量 
+
+1 	声明变量
+
+# 变量名称＝变量值
+
+变量名称规范：
+	只能由数字、字母、下划线组成 
+	不能以数字开头 
+
+[root@shell ~]# name=tom
+
+
+2	调用变量的值
+	
+	$变量名称
+	${变量名称}			变量名称后紧跟数字, 字符的时候
+
+[root@shell ~]# name=cat
+
+[root@shell ~]# echo "This is a $name"
+This is a cat
+
+[root@shell ~]# echo "There are some ${name}s"
+There are some cats
+
+SHELL变量的值默认全都作为字符处理
+
+[root@shell ~]# a=10
+[root@shell ~]# b=20
+[root@shell ~]# c=a+b
+[root@shell ~]# echo $c
+a+b
+[root@shell ~]# c=$a+$b
+[root@shell ~]# echo $c
+10+20
+[root@shell ~]# 
+
+
+3	如何使用变量的值作数学运算 
+
+方法1： $((EXPRESSION))
+
+[root@shell ~]# a=10
+[root@shell ~]# b=20
+[root@shell ~]# c=$((a+b))
+[root@shell ~]# echo $c
+30
+[root@shell ~]# 
+
+
+方法2： 关键字　　let  
+
+[root@shell ~]# a=10
+[root@shell ~]# b=20
+[root@shell ~]# let c=a+b
+[root@shell ~]# echo $c
+30
+[root@shell ~]# 
+
+
+方法3: 关键字　　declare 
+
+[root@shell ~]# a=10
+[root@shell ~]# b=20
+[root@shell ~]# declare -i c=a+b
+[root@shell ~]# echo $c
+30
+[root@shell ~]# 
+
+
+数学运算符： 
+	+
+	-
+	*
+	/		整除
+	%		取余
+
+
+生成10以内的随机数
+
+[root@shell ~]# echo $((RANDOM%10))
+9
+[root@shell ~]# echo $((RANDOM%10))
+8
+[root@shell ~]# echo $((RANDOM%10))
+4
+[root@shell ~]# echo $((RANDOM%10))
+5
+
+
+4	命令引用　
+
+	反引号	`COMMAND`
+	$(COMMAND)
+
+[root@shell ~]# a=`ls -ldh /etc/`
+[root@shell ~]# echo $a
+drwxr-xr-x. 65 root root 4.0K 11月 20 16:32 /etc/
+ 
+[root@shell ~]# b=$(ls -ldh /etc/)
+[root@shell ~]# echo $b
+drwxr-xr-x. 65 root root 4.0K 11月 20 16:32 /etc/
+[root@shell ~]# 
+
+
+5	删除变量　
+
+# unset 变量名称
+
+
+环境变量　
+
+1) 查看环境变量　
+
+[root@shell ~]# env
+HOSTNAME=shell.linux.com
+TERM=xterm
+SHELL=/bin/bash
+HISTSIZE=1000
+SSH_CLIENT=192.168.122.1 44503 22
+SSH_TTY=/dev/pts/0
+USER=root
+
+
+2) 定义环境变量，　修改环境变量的值
+
+# export 变量名称＝变量值
+
+	/etc/profile
+	/etc/bashrc
+
+
+
+
+3)	特殊变量　
+
+	$?	代表上一条命令的执行状态
+		0---255
+			0		执行成功
+		
+
+
+awk命令
+
+[root@shell ~]# head -n 3 /etc/passwd | tail -1 | awk -F: '{print $1}'
+daemon
+
+[root@shell ~]# head -n 3 /etc/passwd | tail -1 | awk -F: '{print $1,$6,$7}'
+daemon /sbin /sbin/nologin
+[root@shell ~]# 
+
+选项
+	-F		用于指定行分割符
+	默认是以空白字符分割内容
+
+
+[root@shell ~]# df -hT | grep "sda" | awk '{print $1,$3,$6,$7}'
+/dev/sda2 7.6G 14% /
+/dev/sda1 190M 14% /boot
+[root@shell ~]# 
+
+[root@shell ~]# ifconfig eth0 | grep "Bcast" | awk '{print $2}' | awk -F: '{print $2}'
+192.168.122.166
+[root@shell ~]# 
+
+
+
+编写SHELL脚本
+
+	1、创建脚本文件
+	2、根据需求，编写脚本 
+	3、测试执行脚本 
+
+
+
+编写脚本，实现创建用户kk,并设置用户密码为redhat 
+
+#!/bin/bash
+
+useradd kk
+echo "redhat" | passwd --stdin kk &> /dev/null
+echo "用户kk创建完成，密码为redhat"
+
+
+#!/bin/bash
+
+name=jerry
+password=redhat
+
+useradd $name
+echo "$password" | passwd --stdin $name &> /dev/null
+echo "用户$name创建完成，密码为$password"
+
+
+#!/bin/bash
+
+
+read -p "请输入用户名：" name
+read -p "请输入密码：　" password
+
+useradd $name
+echo "$password" | passwd --stdin $name &> /dev/null
+echo "用户$name创建完成，密码为$password"
+
+
+
+编写脚本，配置本地yum源　
+
+#!/bin/bash
+#
+
+#备份原有yum源配置文件 
+
+mkdir /tmp/yum_bak
+mv /etc/yum.repos.d/* /tmp/yum_bak
+
+#自动挂载光盘
+
+echo -e "/dev/cdrom\t/mnt\tiso9660\tdefaults\t0 0" >> /etc/fstab
+mount -a &> /dev/null
+
+# 编辑yum源配置文件  
+
+cat << eof > /etc/yum.repos.d/local.repo
+[local]
+name=localsrc
+baseurl=file:///mnt
+enabled=1
+gpgcheck=0
+eof
+
+yum clean all &> /dev/null
+yum repolist 
+
+
+
+
+SHELL逻辑控制语句：
+
+	分支判断结构
+		if
+		case
+	循环结构
+		for
+		while
+		util
+
+
+if语句结构
+
+用法1: 
+
+if CONDITION; then
+	statement
+	statement
+fi 
+
+CONDITION条件的写法：
+
+	COMMAND
+	[ expression ] 
+
+expression表达式：
+
+	数学表达式
+	字符表达式
+	文件目录表达式　
+
+
+数学表达式：
+
+	[ number1 -eq number2 ]					等于
+	[ number1 -ne number2 ]					不等于
+	[ number1 -gt number2 ]					大于
+	[ number1 -ge number2 ]					大于等于　
+	[ number1 -lt number2 ]					小于　
+	[ number1 -le number2 ]					小于等于
+
+
+编写脚本，　由用户输入用户名，判断用户不存在则创建之　
+
+#!/bin/bash
+#
+
+read -p "请输入用户名：" name
+
+id $name &> /dev/null
+
+if [ $? -ne 0 ]; then
+   useradd $name
+   echo "redhat" | passwd --stdin $name &> /dev/null
+   echo "用户$name创建完成"
+fi
+
+
+#!/bin/bash
+#
+
+read -p "请输入用户：" name 
+
+if ! id $name &> /dev/null; then 
+    useradd $name
+    echo "redhat" | passwd --stdin $name &> /dev/null
+    echo "用户$name创建完成."
+fi
+
+
+
+
+用法2： 单分支if 
+
+if CONDITION; then
+	statement
+	statement
+else
+	statement
+	statement
+fi
+
+
+编写脚本，由用户输入用户名，判断用户不存在则创建之，并设置用户第一次登录系统时需要修改密码；否则提示用户已经存在
+
+#!/bin/bash
+#
+
+read -p "Enter user: " name
+
+if id $name &> /dev/null; then
+   echo "用户$name已经存在"
+else
+   useradd $name
+   echo "redhat" | passwd --stdin $name &> /dev/null
+   passwd -e $name &> /dev/null
+   echo "用户$name创建成功，初始密码为redhat"
+fi
+　
+
+
+
+编写脚本，判断用户的uid和gid，如果相同，显示Good user，否则显示bad user 
+
+#!/bin/bash
+#
+
+read -p "输入用户名： " name 
+
+user_id=`id -u $name`
+group_id=`id -g $name`
+
+if [ $user_id -eq $group_id ]; then
+  echo "Good user."
+else
+  echo "Bad user."
+fi
+
+

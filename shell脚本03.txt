@@ -1,0 +1,384 @@
+循环结构 
+
+	1、循环开始的条件
+	2、循环操作
+	3、循环终止的条件
+
+
+shell语言 
+
+	for, while, util
+
+for循环
+
+语法：
+
+1)
+
+for 变量 in 取值列表; do
+	statement
+	statement
+done
+
+2)
+
+for 变量 in 取值列表 
+do
+	statement
+	statement
+done 
+
+
+取值列表：
+	数字
+		10 20 30
+		使用seq命令生成数字的序列
+			seq 10
+			seq 3 10
+			seq 1 2 10
+	字符
+		aa bb cc 
+		
+	文件
+
+
+编写脚本，计算1---100的和
+
+#!/bin/bash
+#
+
+sum=0
+
+for i in `seq 100`; do
+   let sum=$sum+$i
+done
+
+echo $sum
+
+
+编写脚本，计算1--100所有奇数的和
+
+#!/bin/bash
+#
+
+sum=0
+
+for i in `seq 100`; do
+   let ys=$i%2
+   if [ $ys -ne 0 ]; then
+      let sum=$sum+$i
+   fi
+done
+
+echo $sum
+
+
+编写脚本，实现批量创建用户user1...user10
+
+#!/bin/bash
+#
+
+for i in `seq 10`; do
+   if ! id user$i &> /dev/null; then
+        useradd user$i
+        echo "redhat" | passwd --stdin user$i &> /dev/null
+        echo "用户user$i创建完成，初始密码为redhat"
+   else
+        echo "用户user$i已经存在"
+   fi
+done
+
+
+编写脚本，检测172.16.20.0/24在线主机IP
+
+#!/bin/bash
+#
+
+network=172.16.20.
+
+for i in `seq 254`; do
+   if ping -c 1 -W 1 $network$i &> /dev/null; then
+	echo "Host $network$i is up"
+   fi
+done
+
+
+启动多线程：
+
+#!/bin/bash
+#
+
+network=172.16.80.
+
+for i in `seq 254`; do
+    {
+    if ping -c 1 -W 1 $network$i &> /dev/null; then
+       echo "Host $network$i is up"
+    fi
+    }&
+done
+wait
+
+
+
+
+以字符作为取值列表 
+
+#!/bin/bash
+#
+
+for name in alice natsha kira merry; do
+   useradd $name
+   echo "$name create finished."
+done
+
+
+
+以文件作为取值列表 
+
+	`cat FILE`
+
+
+
+编写脚本，向系统中所有用户打招呼  
+
+#!/bin/bash
+#
+
+for i in `awk -F: '{print $1}' /etc/passwd`; do
+	echo "Hello, $i"
+done
+
+
+编写脚本， 将某目录下所有以.txt结尾的文件改为以.mp3结尾 
+
+#!/bin/bash
+#
+
+for i in `ls -l /tmp/test | grep "txt$" | awk '{print $9}'`; do
+    file_name=`echo $i | awk -F. '{print $1}'`
+    mv /tmp/test/$i /tmp/test/$file_name.mp3
+done
+
+
+编写脚本, 分别统计/bin/bash和/sbin/nologin用户的个数 
+
+#!/bin/bash
+#
+
+bash_number=0
+nologin_number=0
+
+line=$(wc -l /etc/passwd | awk '{print $1}')
+
+for i in `seq $line`; do
+  sh_name=$(head -n $i /etc/passwd | tail -1 | awk -F: '{print $7}')
+  case $sh_name in
+    /sbin/nologin)
+        let nologin_number=$nologin_number+1
+        ;;
+    /bin/bash)
+        let bash_number=$bash_number+1
+        ;;
+   esac
+done
+
+echo "shell为/bin/bash的：$bash_number"
+echo "shell为/sbin/nologin的：$nologin_number"
+
+
+
+
+编写脚本，检测172.16.0.0/16网段的在线主机 
+
+	172.16.0.1 ---------- 172.16.0.255
+	172.16.1.1 ---------- 172.16.1.255
+	172.16.2.1 ---------- 172.16.2.255
+	...
+	172.16.254.1 -------- 172.16.254.255
+
+
+	for i in `seq 10`; 
+		for j in `seq 10`;      i=1, j=1,j=10         i=2, j=1..10 
+
+
+
+编写脚本，显示九九乘法表 
+
+
+编写脚本，编译安装apache  
+
+
+
+
+
+中断循环的语句
+	break			中断整体循环
+	continue		中断本次循环
+
+
+
+break用法：
+
+#!/bin/bash
+#
+
+sum=0
+
+for i in `seq 100`; do
+   let sum=$sum+$i
+   if [ $sum -ge 3000 ]; then
+	echo $i
+	break
+   fi
+done
+
+
+continue用法：
+
+#!/bin/bash
+#
+
+sum=0
+
+for i in `seq 100`; do
+   let ys=$i%2
+   if [ $ys -eq 0 ]; then
+	continue
+   fi
+   let sum=$sum+$i
+done
+
+echo $sum
+
+
+编写脚本，列出系统中shell为/bin/bash的前5个用户名 
+
+#!/bin/bash
+#
+
+number=0
+line=$(wc -l /etc/passwd | awk '{print $1}')
+
+for i in `seq $line`; do
+   sh_name=`head -n $i /etc/passwd | tail -1 | awk -F: '{print $7}'`
+   if [ $sh_name == "/bin/bash" ]; then
+        name=`head -n $i /etc/passwd | tail -1 | awk -F: '{print $1}'`
+        echo -n "$name  "
+        let number=$number+1
+        if [ $number -eq 5 ]; then
+                break
+        fi
+   fi
+done
+echo
+
+
+
+while循环 
+
+1) 
+
+while CONDITION; do
+	statement
+	statement
+	<改变循环条件真假的语句>
+done 
+
+
+编写脚本，计算1---100的和 
+
+#!/bin/bash
+#
+
+sum=0
+i=1
+
+while [ $i -le 100 ]; do
+   let sum=$sum+$i
+   let i=$i+1
+done
+
+echo $sum
+
+
+2) 
+
+while true; do 
+	statement
+	statement
+done 
+
+
+#!/bin/bash
+#
+
+while true; do
+   read -p "请输入你的选择：" choice
+   if [ $choice == "q" ]; then
+     break
+   fi
+done
+
+
+#!/bin/bash
+#
+
+while true; do
+   uptime
+   sleep 3
+done
+
+
+3)
+
+while read line; do 
+	statement
+	statement
+done < file 
+
+
+#!/bin/bash
+#
+
+bash_num=0
+nologin_num=0
+
+while read line; do
+   sh_name=$(echo $line | awk -F: '{print $7}')
+   case $sh_name in
+        /bin/bash)
+           let bash_num=$bash_num+1
+           ;;
+        /sbin/nologin)
+           let nologin_num=$nologin_num+1
+           ;;
+   esac
+done < /etc/passwd
+
+echo $bash_num
+echo $nologin_num
+
+
+
+
+util循环：
+
+
+util CONDITION; do 
+    statement
+	statement
+done 
+
+条件为假时，执行循环，条件为真时，结束循环 
+
+
+
+
+链接: https://pan.baidu.com/s/1kU8jXqR 密码: ryxe
+
+
+
+
+
+

@@ -1,0 +1,422 @@
+函数Function的使用 
+
+
+定义函数
+
+1) 
+
+函数名称() {
+	...
+	...
+}
+
+
+2) 
+
+function 函数名称 {
+	...
+	...
+}
+
+
+调用函数
+
+	函数名称 
+
+
+也可以通过位置变量的方式给函数传递参数 
+	
+
+
+	
+编写脚本，实现目录管理功能，要求使用函数 
+
+#!/bin/bash
+#
+
+createDir() {
+  read -p "Enter directory: " dir
+  if [ -d $dir ]; then
+    echo "目录$dir存在"
+  else
+    mkdir -p $dir
+    echo "目录$dir创建完成"
+  fi
+
+}
+
+removeDir() {
+  read -p "Enter directory: " dir
+  if [ -d $dir ]; then
+	rm -rf $dir
+	echo "目录$dir删除完成"
+  else
+	echo "目录$dir不存在"
+  fi
+
+}
+
+cat << eof
+===================
+  目录管理
+1、创建目录
+2、删除目录
+3、退出脚本
+==================
+eof
+echo 
+
+while true; do
+    read -p "请输入你的选择：" choice
+    case $choice in
+      1)
+	createDir
+	;;
+      2)
+	removeDir
+	;;
+      3)
+	exit 0
+	;;
+      *)
+	echo -e "\033[31m输入错误！\033[0m"
+        ;;
+    esac
+done
+	
+	
+	
+编写脚本，实现用户管理功能 
+
+#!/bin/bash
+#
+
+createUser() {
+   read -p "Enter user: " name
+   if ! id $name &> /dev/null; then
+	useradd $name
+        read -p "Enter password: " password
+  	echo "$password" | passwd --stdin $name &> /dev/null
+	echo "用户$name创建完成"
+   else
+	echo "用户$name不存在."
+   fi
+}
+
+removeUser() {
+   if id $1 &> /dev/null; then
+      userdel -r $1
+      echo "用户$1删除完成"
+   else
+      echo "用户$1不存在"
+   fi
+}
+
+
+modifyUser() {
+  read -p "Enter user: " name
+  if id $name &> /dev/null; then
+    sh_name=$(grep "^$name:" /etc/passwd | awk -F: '{print $7}')
+    echo "用户$name当前的SHELL： $sh_name"
+    echo 
+    echo "系统当前的SHELL："
+    cat -n /etc/shells
+    echo 
+    read -p "请输入要修改的SHELL： " new_sh_name
+    usermod -s $new_sh_name $name
+    echo "用户$name的SHELL被修改为$new_sh_name"
+  else
+    echo "用户$name不存在"
+  fi
+
+
+}
+
+
+cat << eof
+===============
+用户管理
+1、创建用户
+2、删除用户
+3、修改用户SHELL
+4、退出脚本
+===============
+eof
+echo
+
+while true; do
+  read -p "请输入你的选择：" choice
+  case $choice in 
+    1) 
+     createUser
+     ;;
+    2)
+     read -p "Enter user: " name
+     removeUser $name
+     ;;
+    3)
+     modifyUser
+     ;;
+    4)
+     exit 0
+     ;;
+    *)
+     echo "输入错误！"
+     ;;
+  esac
+done
+
+	
+nginx服务控制脚本：
+
+安装nginx
+
+[root@shell ~]# yum install -y gcc pcre-devel zlib-devel openssl-devel 
+
+[root@shell ~]# tar xf nginx-1.11.4.tar.gz 
+[root@shell ~]# cd nginx-1.11.4/
+[root@shell nginx-1.11.4]# ./configure --prefix=/usr/local/nginx 
+[root@shell nginx-1.11.4]# make && make install
+
+	
+脚本如下：
+
+#!/bin/bash
+#
+
+nginx_cmd=/usr/local/nginx/sbin/nginx
+nginx_conf=/usr/local/nginx/conf/nginx.conf
+nginx_pid_file=/usr/local/nginx/logs/nginx.pid
+
+start() {
+	$nginx_cmd
+    if [ $? -eq 0 ]; then
+		echo "服务nginx启动......[ok]"
+    fi
+}
+
+stop() {
+
+	$nginx_cmd -s stop
+}
+
+
+reload() {
+    if $nginx_cmd -t &> /dev/null; then
+		$nginx_cmd -s reload
+    else
+	   $nginx_cmd -t
+    fi		
+}
+
+status() {
+	if [ -e $nginx_pid_file ]; then
+		echo "服务nginx(PID `cat $nginx_pid_file`) is running..."
+    else
+		echo "服务nginx is stopped..."
+    fi
+}
+
+
+if [ -z $1 ]; then
+  echo "使用：$0 {start|stop|restart|reload|status}"
+  exit 9
+fi
+
+case $1 in
+	start)
+		start
+      	;;
+	stop)
+		stop
+		;;
+	restart)
+		stop
+		sleep 2
+		start
+		;;
+	reload)
+		reload
+		;;
+	status)
+		status
+		;;
+	*)
+  	echo "使用：$0 {start|stop|restart|reload|status}"
+ 	exit 8
+esac
+	
+	
+	
+	
+	
+	
+	
+	
+	
+shell脚本中对字符串的处理				
+
+1、${#变量名}
+
+作用：返回字符串的长度
+# foo="this is a test"
+# echo ${#foo}           //返回字符串foo的长度          
+14
+
+
+2、${变量名:offset:length}
+
+作用：截取字符串，length指定截取的长度，也可以不写；字符串的第一个字符的索引值为0
+# foo="abcdefg"
+# echo ${foo:3:2}     //从下标为3的字符开始截取，共截取2个     
+de
+# echo ${foo:3}       //从下标为3的字符开始截取到最后的字符     
+defg
+
+
+
+3、${变量名#pattern}    ${变量名##parttern}
+
+pattern：模式，通配符表达式
+作用：清除字符串中符合pattern的字符
+
+# foo="file.txt.zip"
+# echo ${foo#*.}          //一个#号代表按照最短匹配清除
+txt.zip
+# echo ${foo##*.}         //2个#号代表按照最长匹配清除
+zip
+
+4、${变量名%pattern}    ${变量名%%parttern}
+pattern：模式，通配符表达式
+作用：清除字符串中符合pattern的字符，从字符串最后匹配
+# echo $foo
+file.txt.zip
+# echo ${foo%.*}              //1个%代表按照最短匹配
+file.txt
+# echo ${foo%%.*}           //2个%%代表按照最长匹配
+file
+
+
+5、字符串替换操作
+
+${变量名称/old/new}
+
+[root@localhost ~]# foo="mp3.txt.txt.mp3.avi"
+[root@localhost ~]# 
+[root@localhost ~]# echo ${foo/txt/TXT}
+mp3.TXT.txt.mp3.avi
+[root@localhost ~]# 
+[root@localhost ~]# echo ${foo//txt/TXT}
+mp3.TXT.TXT.mp3.avi
+
+
+[root@localhost ~]# foo="txt.mp3.txt"
+[root@localhost ~]# 
+[root@localhost ~]# echo ${foo/#txt/TXT}
+TXT.mp3.txt
+[root@localhost ~]# echo ${foo/%txt/TXT}
+txt.mp3.TXT
+
+
+6、实现大小写字母的转换
+
+# foo="ABde"
+# echo ${foo,,}      //将字符串foo全部转换成小写        
+abde
+# echo ${foo,}       //将字符串foo的第1个字符转换成小写
+aBde
+# echo ${foo^}      //将字符串foo的第1个字符转换成大写 
+ABde
+# echo ${foo^^}     //将字符串foo全部转换为大写         
+ABDE
+	
+	
+	
+	
+	
+	
+	
+	
+	
+数组 Array 
+	
+	一段连续的内存空间 
+	
+1) 定义数组 
+
+[root@shellscript shell]# aa[0]=martin
+[root@shellscript shell]# aa[1]=jerry
+[root@shellscript shell]# aa[2]=mike
+[root@shellscript shell]# aa[10]=alice
+
+	
+[root@shellscript shell]# bb=(192.168.1.1 192.168.1.2 192.168.1.3 192.168.1.4)
+	
+	
+2) 调用数组的值  
+
+[root@shellscript shell]# echo ${bb[2]}
+192.168.1.3
+
+[root@shellscript shell]# echo ${bb[1]}
+192.168.1.2
+
+[root@shellscript shell]# echo ${bb[*]}
+192.168.1.1 192.168.1.2 192.168.1.3 192.168.1.4
+
+[root@shellscript shell]# echo ${bb[@]}
+192.168.1.1 192.168.1.2 192.168.1.3 192.168.1.4
+	
+	
+3) 获取数组的长度 
+
+[root@shellscript shell]# echo ${#bb[*]}
+4
+[root@shellscript shell]# echo ${#bb[@]}
+4
+	
+	
+编写脚本，找出数组中的最大数 
+
+#!/bin/bash
+#
+
+aa=(14 543 64 235 76 345 765)
+
+max=${aa[0]}
+
+for i in `seq 6`; do
+   if [ $max -lt ${aa[$i]} ]; then
+     max=${aa[$i]}
+   fi
+done
+
+echo $max
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
